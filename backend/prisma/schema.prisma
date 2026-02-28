@@ -1,0 +1,185 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  STUDENT
+  COORDINATOR
+  CCD_ADMIN
+  CCD_MEMBER
+}
+
+enum PlacementStatus {
+  DREAM_PLACED
+  STANDARD_PLACED
+  NORMAL_PLACED
+  UNPLACED
+}
+
+enum OpportunityTier {
+  DREAM
+  STANDARD
+  NORMAL
+}
+
+enum OpportunityCategory {
+  ON_CAMPUS
+  OFF_CAMPUS
+}
+
+model User {
+  id           Int      @id @default(autoincrement())
+  loginId      String   @unique
+  passwordHash String
+  role         Role
+  isLocked     Boolean  @default(false)
+
+  studentProfile StudentProfile?
+  coordinatedOpportunities Opportunity[]
+  notifications            Notification[]
+  auditLogs                AuditLog[]
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
+
+model StudentProfile {
+  id             Int    @id @default(autoincrement())
+  userId         Int    @unique
+  user           User   @relation(fields: [userId], references: [id])
+
+  photoUrl       String?
+  email          String
+  mobile         String
+  enrollment     String  @unique
+  branch         String
+
+  sgpaSem1       Float?
+  sgpaSem2       Float?
+  sgpaSem3       Float?
+  sgpaSem4       Float?
+  sgpaSem5       Float?
+  sgpaSem6       Float?
+  sgpaSem7       Float?
+  sgpaSem8       Float?
+
+  cgpa           Float?
+  xPercentage    Float?
+  xiiPercentage  Float?
+
+  hasYearGap     Boolean @default(false)
+  yearGapDuration Int?   // in years
+  activeBacklogs  Int    @default(0)
+  deadBacklogs    Int    @default(0)
+
+  cv1Url         String?
+  cv2Url         String?
+  cv3Url         String?
+
+  tpoName        String?
+  tpoEmail       String?
+  tpoMobile      String?
+
+  tnpName        String?
+  tnpEmail       String?
+  tnpMobile      String?
+
+  icName         String?
+  icEmail        String?
+  icMobile       String?
+
+  placementStatus PlacementStatus @default(UNPLACED)
+
+  applications   Application[]
+}
+
+model Opportunity {
+  id           Int                 @id @default(autoincrement())
+  category     OpportunityCategory
+  companyName  String
+  jobRole      String
+  tier         OpportunityTier?
+  stipendCtc   String?
+  eligibilityEnrollmentPrefix String? // e.g. "23"
+  eligibilityXPercent        Float?
+  eligibilityXiPercent       Float?
+  eligibilityActiveBacklogs  Int?
+  eligibilityDeadBacklogs    Int?
+  eligibilityCgpa            Float?
+  eligibilityBranch          String?
+  eligibilityMaxGapYears     Int?     // null = no check
+  deadline     DateTime?
+  skills       String?
+  otherDetails String?
+
+  sharedFields StudentSharedField[]
+
+  coordinatorId Int?
+  coordinator   User?             @relation(fields: [coordinatorId], references: [id])
+
+  applications Application[]
+
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model StudentSharedField {
+  id            Int         @id @default(autoincrement())
+  opportunityId Int
+  opportunity   Opportunity @relation(fields: [opportunityId], references: [id])
+  fieldKey      String      // e.g. "email", "mobile", "cv1Url"
+}
+
+model Application {
+  id             Int        @id @default(autoincrement())
+  studentId      Int
+  student        StudentProfile @relation(fields: [studentId], references: [id])
+
+  opportunityId  Int
+  opportunity    Opportunity   @relation(fields: [opportunityId], references: [id])
+
+  selectedCv     String
+  acceptedTerms  Boolean
+
+  createdAt      DateTime   @default(now())
+
+  rounds         ApplicationRound[]
+}
+
+model ApplicationRound {
+  id            Int       @id @default(autoincrement())
+  applicationId Int
+  application   Application @relation(fields: [applicationId], references: [id])
+
+  roundNumber   Int
+  description   String?
+  date          DateTime?
+  centre        String?
+  time          String?
+  status        String?   // "SELECTED" / "REJECTED" / "PENDING"
+}
+
+model Notification {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id])
+  title     String
+  body      String
+  createdAt DateTime @default(now())
+  isRead    Boolean  @default(false)
+}
+
+model AuditLog {
+  id        Int      @id @default(autoincrement())
+  actorId   Int?
+  actor     User?    @relation(fields: [actorId], references: [id])
+  action    String
+  meta      String?
+  createdAt DateTime @default(now())
+}
+
+

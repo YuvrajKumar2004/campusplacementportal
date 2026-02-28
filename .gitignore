@@ -1,0 +1,54 @@
+# ================================
+# Global
+# ================================
+node_modules/
+npm-debug.log*
+yarn-error.log*
+pnpm-lock.yaml
+.DS_Store
+
+# ================================
+# Environment & Secrets
+# ================================
+.env
+.env.*
+!.env.example
+
+# ================================
+# Backend
+# ================================
+backend/node_modules/
+backend/dist/
+backend/dev.db
+backend/prisma/*.db
+backend/prisma/*.sqlite
+backend/prisma/migrations/**/migration_lock.toml
+
+# Prisma generated client
+backend/node_modules/.prisma/
+
+# ================================
+# Frontend
+# ================================
+frontend/node_modules/
+frontend/dist/
+frontend/.vite/
+
+# ================================
+# Logs
+# ================================
+logs/
+*.log
+
+# ================================
+# OS / Editor
+# ================================
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# ================================
+# Build Artifacts
+# ================================
+*.tsbuildinfo
